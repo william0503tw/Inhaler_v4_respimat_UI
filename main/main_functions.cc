@@ -431,7 +431,7 @@ void loop() {
 
         all_inhale_tick += 1.0 ;
 
-        curr_message_package.percentage = (int)(100 * (valid_inhale_tick / all_inhale_tick)) ;
+        curr_message_package.percentage = (int)(100 * (valid_inhale_tick / 125)) ;
         curr_message_package.flowrate = 30 ;
       }
 
