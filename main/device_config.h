@@ -37,4 +37,6 @@ const int bin_perBand ((SAMPLE_SIZE / 2) / BAND_SIZE);
 // prediction model for inhale dection, if higher than it, than it's inahle
 #define PREDICTION_IS_INHALE_THRESHOLD 0.99
 
+#define IGNORE_CYCLE_COUNT 10
+
 #endif

@@ -369,7 +369,7 @@ void loop() {
           break;
         }
 
-        if(serial_buffer_ignore_cycle_count == 5){
+        if(serial_buffer_ignore_cycle_count == IGNORE_CYCLE_COUNT){
           send_message_package(curr_message_package);
           serial_buffer_ignore_cycle_count = 0 ;
         }
@@ -435,7 +435,7 @@ void loop() {
         curr_message_package.flowrate = 30 ;
       }
 
-      if(serial_buffer_ignore_cycle_count == 5){
+      if(serial_buffer_ignore_cycle_count == IGNORE_CYCLE_COUNT){
         send_message_package(curr_message_package);
         serial_buffer_ignore_cycle_count = 0 ;
       }

@@ -23,7 +23,7 @@ const char stopMessagePrefix[] = "stop:" ;
 const char pressMessagePrefix[] = "press:" ;
 const char flowrateMessagePrefix[] = "flowrate:" ;
 const char sequenceMessagePrefix[] = "sequence:" ;
-const char percentageMessagePrefix[] = "p:" ;
+const char percentageMessagePrefix[] = "per:" ;
 
 char* _intToString(int num) {
     // Allocate space for the string (including the null terminator)
@@ -77,8 +77,6 @@ void send_message_package(message_package_t message){
 
     char *curr_flowrate_string = _intToString(curr_flowrate);
     char *curr_percentage_string = _intToString(curr_percentage);
-
-    //_wait_for_send_text_command();
 
     printf("%s%d%s%d%s%s%s%d%s%s\n",  stopMessagePrefix, curr_is_stop, 
                                     pressMessagePrefix, curr_is_press,
