@@ -1,0 +1,5 @@
+/managed_components
+/build
+*.vscode 
+*.old
+/python_script

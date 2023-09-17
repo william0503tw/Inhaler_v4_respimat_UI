@@ -1,0 +1,45 @@
+menu "Inhaler Configuration"            
+    config MAIN_CORE_ID
+        int "Main thread core ID"
+        default 0
+        help 
+            specify core id for main core to run on
+
+    config BACKGROUND_CORE_ID
+        int "Background core ID"
+        default 1
+        help
+            must opposite to main core id
+
+    config SAMPLE_RATE
+        int "Mic sound sampling rate"
+        default 40960
+        help
+            sampling rate of mic, default 40960
+    
+    config SAMPLE_SIZE
+        int "FFT sample size"
+        default 512
+        help
+            fft size, default 512
+
+    config BAND_SIZE
+        int "FFT Band size"
+        default 32
+        help
+            band size for algorithms, default 32
+    
+    config ROW_SIZE
+        int "FFT Row size"
+        default 8
+        help 
+            row size, default 8
+
+    config IMU_PAST_REFERENCE_BUFFER_SIZE
+        int "IMU past reference size"
+        default 5
+        help
+            if happened click (intense sound), the number to look back for distinguish rotate or click
+
+     
+endmenu
