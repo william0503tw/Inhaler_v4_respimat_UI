@@ -10,6 +10,7 @@
 #include "mpu6050.h"
 #include "status.hpp"
 #include "message_package.h"
+#include "flow_calculate.h"
 
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
@@ -62,7 +63,7 @@ long long click_start_time_stamp ;
 message_package_t curr_message_package = {
     .is_stop = 0,
     .is_press = 0,
-    .flowrate = 40,
+    .flowrate = 0,
     .percentage = 0,
     .sequence = UNKNOWN_STATUS
 };
@@ -172,7 +173,7 @@ void loop() {
     curr_message_package = {
       .is_stop = 0,
       .is_press = 0,
-      .flowrate = 40,
+      .flowrate = 0,
       .percentage = 0,
       .sequence = UNKNOWN_STATUS
     };
@@ -327,6 +328,9 @@ void loop() {
 
       generate_feature_one_slice(temp_slice);
 
+      // update flow
+      curr_message_package.flowrate = calculate_flow(temp_slice) ;
+
       for(int i = lower_bound_index ; i <= upper_bound_index ; i++){
         inhale_band_score += temp_slice[i];
       }
@@ -406,6 +410,7 @@ void loop() {
 
       if(curr_time_stamp > 1500000.0){
         status = SYSTEM_AFTER_CLICK_1_5_SEC_SUMMARY ;
+        curr_message_package.is_press = NOT_PRESS ;
         break;
       }
 
@@ -432,7 +437,7 @@ void loop() {
         all_inhale_tick += 1.0 ;
 
         curr_message_package.percentage = (int)(100 * (valid_inhale_tick / 125)) ;
-        curr_message_package.flowrate = 30 ;
+        curr_message_package.flowrate = calculate_flow(temp_slice) ;
       }
 
       if(serial_buffer_ignore_cycle_count == IGNORE_CYCLE_COUNT){
@@ -446,8 +451,7 @@ void loop() {
   break;
   //----------------------------------------------------------------------------------------------------------
   case SYSTEM_AFTER_CLICK_1_5_SEC_SUMMARY: {
-    float finish_percentage = valid_inhale_tick / all_inhale_tick ;
-
+    float finish_percentage = valid_inhale_tick / 125 ;
     if(finish_percentage > 0.70){
       status = SYSTEM_INHALE_SUCCEED ;
       break ;
@@ -455,34 +459,46 @@ void loop() {
       status = SYSTEM_INHALE_FAILED ;
       break ;
     }
-    
-
-    send_message_package(curr_message_package);
   }
   break;
   //----------------------------------------------------------------------------------------------------------
   case SYSTEM_INHALE_SUCCEED:{
-    play_succeed_sound();
+    long long _start_time = esp_timer_get_time();
+    while((esp_timer_get_time() - _start_time) < 3000000){
 
-    vTaskDelay(500/portTICK_PERIOD_MS);
+      float temp_slice[32];
+      generate_feature_one_slice(temp_slice);
+      //curr_message_package.flowrate = calculate_flow(temp_slice);
+      curr_message_package.flowrate = 3 ;
 
+      send_message_package(curr_message_package);
+      vTaskDelay(150/portTICK_PERIOD_MS);
+    }
+
+    curr_message_package.flowrate = 0 ;
     curr_message_package.is_stop = YES_STOP ;
-
     send_message_package(curr_message_package);
-
     status = SYSTEM_RESTART ;
   }
   break;
   //-------------------------------------------------------------------------------------------------------------
   case SYSTEM_INHALE_FAILED:{
-    play_failed_sound();
+    //play_failed_sound();
+    long long _start_time = esp_timer_get_time();
+    while((esp_timer_get_time() - _start_time) < 3000000){
 
-    vTaskDelay(500/portTICK_PERIOD_MS);
+      float temp_slice[32];
+      generate_feature_one_slice(temp_slice);
+      //curr_message_package.flowrate = calculate_flow(temp_slice);
+      curr_message_package.flowrate = 3 ;
 
+      send_message_package(curr_message_package);
+      vTaskDelay(150/portTICK_PERIOD_MS);
+    }
+
+    curr_message_package.flowrate = 0 ;
     curr_message_package.is_stop = YES_STOP ;
-
     send_message_package(curr_message_package);
-
     status = SYSTEM_RESTART ;
   }
   break;
