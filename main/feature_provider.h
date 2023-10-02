@@ -16,6 +16,7 @@ void generate_feature_one_slice(float dest[]);
 void feature_provider_begin();
 
 float moving_average_filter(float input);
+float moving_average_filter_2(float input);
 
 float find_row_max(float array[]);
 

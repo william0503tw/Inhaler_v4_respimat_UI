@@ -28,12 +28,24 @@ enum {
     INHALE_BEFORE_CLICK
 };
 
+enum {
+    NOT_FINISH_ROTATE = 0,
+    YES_FINISH_ROTATE 
+};
+
+enum {
+    NOT_FINISH_PRESS_1_5_SEC = 0,
+    YES_FINISH_PRESS_1_5_SEC 
+};
+
 struct message_package_t{
     bool is_stop ;
     bool is_press ;
     int flowrate ;
     int percentage ;
     int sequence ;
+    bool is_finish_rotate ;
+    bool is_finish_press_1_5_sec ;
 };
 
 void wait_for_go_command();

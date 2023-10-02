@@ -24,6 +24,8 @@ const char pressMessagePrefix[] = "press:" ;
 const char flowrateMessagePrefix[] = "flowrate:" ;
 const char sequenceMessagePrefix[] = "sequence:" ;
 const char percentageMessagePrefix[] = "per:" ;
+const char finishRotateMessagePrefix[] = "r:" ;
+const char finishPressMessagePrefix[] = "pf:" ;
 
 char* _intToString(int num) {
     // Allocate space for the string (including the null terminator)
@@ -78,11 +80,15 @@ void send_message_package(message_package_t message){
     char *curr_flowrate_string = _intToString(curr_flowrate);
     char *curr_percentage_string = _intToString(curr_percentage);
 
-    printf("%s%d%s%d%s%s%s%d%s%s\n",  stopMessagePrefix, curr_is_stop, 
+    printf("%s%d%s%d%s%s%s%d%s%s%s%d%s%d\n",  stopMessagePrefix, curr_is_stop, 
                                     pressMessagePrefix, curr_is_press,
                                     flowrateMessagePrefix, curr_flowrate_string,
                                     sequenceMessagePrefix, curr_sequence,
-                                    percentageMessagePrefix, curr_percentage_string );
+                                    percentageMessagePrefix, curr_percentage_string,
+                                    finishRotateMessagePrefix, message.is_finish_rotate,
+                                    finishPressMessagePrefix, message.is_finish_press_1_5_sec );
+
+    // printf("%d\n", message.flowrate);
 
     free(curr_flowrate_string);
     free(curr_percentage_string);

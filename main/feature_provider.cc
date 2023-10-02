@@ -200,6 +200,30 @@ float moving_average_filter(float input) {
     return avg;
 }
 
+float moving_average_filter_2(float input) {
+    const int win_size = 15 ;
+
+    static float window[win_size] = {0};
+    static int index = 0;
+    static double sum = 0;
+    float avg;
+
+    // Subtract the oldest data value in the window from the sum
+    sum -= window[index];
+
+    // Read new data from the ADC and update the sum
+    window[index] = input;
+    sum += window[index];
+
+    // Move the window index
+    index = (index + 1) % win_size;
+
+    // Compute the average
+    avg = sum / win_size;
+
+    return avg;
+}
+
 // find max peak in one frame
 float find_row_max(float array[]){
     float temp_max = 0 ;

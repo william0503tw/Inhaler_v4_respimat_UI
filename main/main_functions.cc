@@ -65,7 +65,9 @@ message_package_t curr_message_package = {
     .is_press = 0,
     .flowrate = 0,
     .percentage = 0,
-    .sequence = UNKNOWN_STATUS
+    .sequence = UNKNOWN_STATUS,
+    .is_finish_rotate = 0,
+    .is_finish_press_1_5_sec = 0
 };
 
 
@@ -159,7 +161,7 @@ void loop() {
     xTaskCreate((TaskFunction_t) &task_mpu6050_update_past_buffer, "updata imu", 3 * 1024, (void*) &past_pose_buffer, 5, &imu_update_handler);
     vTaskSuspend(imu_update_handler);
 
-    play_start_sound();
+    //play_start_sound();
 
     vTaskDelay(500/portTICK_PERIOD_MS);
 
@@ -175,7 +177,9 @@ void loop() {
       .is_press = 0,
       .flowrate = 0,
       .percentage = 0,
-      .sequence = UNKNOWN_STATUS
+      .sequence = UNKNOWN_STATUS,
+      .is_finish_rotate = 0,
+      .is_finish_press_1_5_sec = 0
     };
     
     play_restart_sound();
@@ -265,6 +269,8 @@ void loop() {
 
         }else{
           // rotation
+          curr_message_package.is_finish_rotate = YES_FINISH_ROTATE ;
+
           vTaskResume(imu_update_handler);
         }
         
@@ -329,7 +335,7 @@ void loop() {
       generate_feature_one_slice(temp_slice);
 
       // update flow
-      curr_message_package.flowrate = calculate_flow(temp_slice) ;
+      curr_message_package.flowrate = calculate_flow_2(temp_slice) ;
 
       for(int i = lower_bound_index ; i <= upper_bound_index ; i++){
         inhale_band_score += temp_slice[i];
@@ -437,7 +443,7 @@ void loop() {
         all_inhale_tick += 1.0 ;
 
         curr_message_package.percentage = (int)(100 * (valid_inhale_tick / 125)) ;
-        curr_message_package.flowrate = calculate_flow(temp_slice) ;
+        curr_message_package.flowrate = calculate_flow_2(temp_slice) ;
       }
 
       if(serial_buffer_ignore_cycle_count == IGNORE_CYCLE_COUNT){
@@ -452,6 +458,9 @@ void loop() {
   //----------------------------------------------------------------------------------------------------------
   case SYSTEM_AFTER_CLICK_1_5_SEC_SUMMARY: {
     float finish_percentage = valid_inhale_tick / 125 ;
+
+    curr_message_package.is_finish_press_1_5_sec = YES_FINISH_PRESS_1_5_SEC ;
+
     if(finish_percentage > 0.70){
       status = SYSTEM_INHALE_SUCCEED ;
       break ;
@@ -469,7 +478,8 @@ void loop() {
       float temp_slice[32];
       generate_feature_one_slice(temp_slice);
       //curr_message_package.flowrate = calculate_flow(temp_slice);
-      curr_message_package.flowrate = 3 ;
+      curr_message_package.flowrate = calculate_flow_2(temp_slice);
+      
 
       send_message_package(curr_message_package);
       vTaskDelay(150/portTICK_PERIOD_MS);
@@ -490,7 +500,7 @@ void loop() {
       float temp_slice[32];
       generate_feature_one_slice(temp_slice);
       //curr_message_package.flowrate = calculate_flow(temp_slice);
-      curr_message_package.flowrate = 3 ;
+      curr_message_package.flowrate = calculate_flow_2(temp_slice);
 
       send_message_package(curr_message_package);
       vTaskDelay(150/portTICK_PERIOD_MS);
