@@ -10,6 +10,8 @@ stop sign "/n"
 3. flowrate (uint8_t, [0,60]) Ex, 00, 01, 02, 03.....60
 4. percentage (uint8_t)
 5. which sequence (uint8_t, 0/1/2) enum
+6. is_finish_rotate (bool, 1/0)
+7. is_finish_press_1_5_sec (bool, 1/0)
 
 EX. stop:0press:1flowrate:00:sequence:0p:25\n
 */
@@ -40,6 +42,7 @@ char* _intToString(int num) {
     return result;
 }
 
+//! no use
 void _wait_for_send_text_command(){
     while(1){
       char in = getchar() ;

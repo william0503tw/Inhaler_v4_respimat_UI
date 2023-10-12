@@ -52,6 +52,9 @@ Pose_t start_pose ;
 TaskHandle_t imu_update_handler ;
 // buffer for save each score in each row
 static Pose_t past_pose_buffer[CONFIG_IMU_PAST_REFERENCE_BUFFER_SIZE] ;
+
+// variable for store is_rotation
+bool is_rotation = NOT_FINISH_ROTATE ;
 //----------------------------------------------------
 
 //---------- Time Stamp Variable -----------------------
@@ -183,12 +186,15 @@ void loop() {
     };
     
     play_restart_sound();
-
+    is_rotation = NOT_FINISH_ROTATE ;
     status = SYSTEM_INHALE_CLICK_ROTATE_DETECTION ;
   }
   break;
   //-------------------------------------------------------------
   case SYSTEM_INHALE_CLICK_ROTATE_DETECTION: {
+
+    long long inhale_click_rotate_start_time = esp_timer_get_time();
+
     vTaskResume(imu_update_handler);
 
     wait_for_go_command();
@@ -203,6 +209,11 @@ void loop() {
 
     while(1){
       long long stime = esp_timer_get_time();
+      if((esp_timer_get_time() - inhale_click_rotate_start_time) > 50000000){
+        curr_message_package.is_stop = YES_STOP ;
+        status = SYSTEM_RESTART ;
+        break;
+      }
 
       // generate one set (8x32) of data, one store in inference model input buffer, one store in frame score buffer (size -> 8)
       generate_feature_one_set(&model_input_buffer[0], &frame_each_row_score[0]);
@@ -255,22 +266,29 @@ void loop() {
 
         if(judgement == CLICK){
           // click before inhale
-
           //get data from past imu buffer that runs in background
           //if greater than threshold, means it just happened rotation, the sound was caused by rotation not click
-          play_click_identified_sound();
-          click_start_time_stamp = esp_timer_get_time();
+          if(is_rotation == YES_FINISH_ROTATE){
+            // check for whether user rotate
+            play_click_identified_sound();
+            click_start_time_stamp = esp_timer_get_time();
 
-          curr_message_package.is_press = YES_PRESS ;
-          curr_message_package.sequence = CLICK_BEFORE_INHALE ;
+            curr_message_package.is_press = YES_PRESS ;
+            curr_message_package.sequence = CLICK_BEFORE_INHALE ;
 
-          status = SYSTEM_AFTER_CLICK_DURING_1_5_SEC ;
-          break ;
+            status = SYSTEM_AFTER_CLICK_DURING_1_5_SEC ;
+            break ;
+          }else{
+            // generally, if click happened, the imu_task should be suspended, but after added rotation thredhold
+            // must resume imu_task since it wont be resume anywhere else
+            vTaskResume(imu_update_handler);
+          }
+          
 
         }else{
           // rotation
           curr_message_package.is_finish_rotate = YES_FINISH_ROTATE ;
-
+          is_rotation = YES_FINISH_ROTATE ;
           vTaskResume(imu_update_handler);
         }
         
@@ -278,18 +296,34 @@ void loop() {
 
       if((max_index == INHALE_INDEX)){
 
+        // if(is_rotation == YES_FINISH_ROTATE){
+        //   // check for whether user rotate
+        //   // inahale first (inahale before click)
+        //   inhale_start_time_stamp = esp_timer_get_time() - time_takes;
+
+        //   play_inhale_identified_sound();
+
+        //   curr_message_package.sequence = INHALE_BEFORE_CLICK ;
+
+        //   status = SYSTEM_FIRST_DROP_DETECTION ;
+        //   break ;
+        // }
+
+        ///////////////////////////////////////////////////////
+
         if(past_prediction_buffer == INHALE_INDEX){    
+          if(is_rotation == YES_FINISH_ROTATE){
+            // check for whether user rotate
+            // inahale first (inahale before click)
+            inhale_start_time_stamp = esp_timer_get_time() - time_takes;
 
-          // inahale first (inahale before click)
+            play_inhale_identified_sound();
 
-          inhale_start_time_stamp = esp_timer_get_time() - time_takes;
+            curr_message_package.sequence = INHALE_BEFORE_CLICK ;
 
-          play_inhale_identified_sound();
-
-          curr_message_package.sequence = INHALE_BEFORE_CLICK ;
-
-          status = SYSTEM_FIRST_DROP_DETECTION ;
-          break ;
+            status = SYSTEM_FIRST_DROP_DETECTION ;
+            break ;
+          }
         }
         past_prediction_buffer = INHALE_INDEX ;
           

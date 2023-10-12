@@ -227,7 +227,7 @@ int mpu6050_judge_is_rotate(Pose_t* pose_array){
 	float pitch_change_rate = abs(pose_array[0].pitch - pose_array[CONFIG_IMU_PAST_REFERENCE_BUFFER_SIZE-1].pitch) ;
 	float yaw_change_rate = abs(pose_array[0].yaw - pose_array[CONFIG_IMU_PAST_REFERENCE_BUFFER_SIZE-1].yaw) ;
 	
-	if(yaw_change_rate > 30){
+	if(yaw_change_rate > 20){
 		return ROTATION;
 	}else{
 		return CLICK;

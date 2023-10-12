@@ -201,7 +201,7 @@ float moving_average_filter(float input) {
 }
 
 float moving_average_filter_2(float input) {
-    const int win_size = 15 ;
+    const int win_size = 1 ;
 
     static float window[win_size] = {0};
     static int index = 0;
